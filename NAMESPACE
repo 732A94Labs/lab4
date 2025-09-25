@@ -2,3 +2,4 @@
 
 export(liu_theme)
 exportClasses(linreg)
+import(methods)
