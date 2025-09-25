@@ -82,20 +82,24 @@ linreg <- setRefClass(
       # of the variable that is identical to the provided data object.
       data_label <- ""
       for (i in seq_len(sys.nframe())) {
-        env <- parent.frame(n = i)
+        env  <- parent.frame(i)
         vars <- base::ls(envir = env, all.names = TRUE)
         for (var in vars) {
-          if (base::exists(var, envir = env, inherits = FALSE)) {
-            obj <- try(base::get(var, envir = env, inherits = FALSE), silent = TRUE)
-            if (!inherits(obj, "try-error") && identical(obj, data)) {
-              data_label <- var
-              break
-            }
+          # retrieve safely; return NULL if anything odd happens
+          obj <- tryCatch(
+            {
+              if (!base::exists(var, envir = env, inherits = FALSE)) return(NULL)
+              base::get(var, envir = env, inherits = FALSE)
+            },
+            error = function(e) NULL
+          )
+          if (!is.null(obj) && identical(obj, data)) {
+            data_label <- var
+            break
           }
         }
         if (nzchar(data_label)) break
       }
-
 
       mf <- model.frame(formula, data)
       y <- model.response(mf)
