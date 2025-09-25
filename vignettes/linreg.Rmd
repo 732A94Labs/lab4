@@ -22,12 +22,6 @@ knitr::opts_chunk$set(
   out.width = "70%"
 )
 
-# Force base primitives so the reverse-lookup in initialize() can't be masked
-init_env <- environment(lab4::linreg$methods$initialize)
-assign("get", base::get, envir = init_env)
-assign("ls", base::ls, envir = init_env)
-assign("exists", base::exists, envir = init_env)
-
 library(lab4)
 ```
 

@@ -81,16 +81,9 @@ linreg <- setRefClass(
       # a "reverse lookup" to manually search the parent environments to find the name
       # of the variable that is identical to the provided data object.
       data_label <- ""
-      for (i in 1:sys.nframe()) {
-        env <- parent.frame(n = i)
-        vars <- ls(env)
-        for (var in vars) {
-          if (identical(get(var, env), data)) {
-            data_label <- var
-            break
-          }
-        }
-        if (data_label != "") break
+      arg <- tryCatch(substitute(data), error = function(e) NULL)
+      if (!is.null(arg) && is.symbol(arg)) {
+        data_label <- deparse(arg)
       }
 
       mf <- model.frame(formula, data)
