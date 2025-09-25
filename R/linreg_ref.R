@@ -32,6 +32,8 @@
 #'   \item{\code{summary()}}{Prints a detailed summary of the model, including coefficient statistics and residual standard error.}
 #' }
 #'
+#' @import methods
+#' @importFrom stats model.frame model.matrix model.response pt
 #' @export
 #' @examples
 #' # Create a new linear regression model using the iris dataset
