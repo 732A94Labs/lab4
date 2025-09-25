@@ -1,3 +1,54 @@
+#' @title Linear Regression Class
+#' @description The Class for fitting and analyzing ordinary least squares linear regression models.
+#' @details This class uses simple linear algebra to compute regression coefficients, fitted values,
+#' residuals, and some key statistical metrics alongside several methods for inspecting the fitted model.
+#'
+#' @field formula An object of class \link{formula} representing the model.
+#' @field data A \code{data.frame} containing the variables in the model.
+#' @field data_name A character string with the name of the data frame.
+#' @field coefficients A named numeric vector of the regression coefficients.
+#' @field fitted_values A numeric vector of the model's fitted (predicted) values.
+#' @field residuals A numeric vector of the model's residuals.
+#' @field df_residual A number representing the residual degrees of freedom.
+#' @field sigma A number representing the residual standard error.
+#' @field var_hat_beta A matrix representing the variance-covariance matrix of the regression coefficients.
+#' @field summary_table A \code{data.frame} containing the estimates, standard errors, t-values, and p-values for the coefficients.
+#'
+#' @section Methods:
+#' \describe{
+#'   \item{\code{new(formula, data)}}{
+#'     Initializes a new linreg object.
+#'     \strong{Arguments:}
+#'     \itemize{
+#'       \item \code{formula}: A model \link{formula}.
+#'       \item \code{data}: A \code{data.frame} containing the data.
+#'     }
+#'     \strong{Returns:} A new \code{linreg} object.
+#'   }
+#'   \item{\code{print()}}{Prints the model call and the estimated coefficients.}
+#'   \item{\code{pred()}}{Returns the vector of fitted values.}
+#'   \item{\code{resid()}}{Returns the vector of residuals.}
+#'   \item{\code{coef()}}{Returns the named vector of regression coefficients.}
+#'   \item{\code{summary()}}{Prints a detailed summary of the model, including coefficient statistics and residual standard error.}
+#' }
+#'
+#' @export
+#' @examples
+#' # Create a new linear regression model using the iris dataset
+#' linreg_model <- linreg$new(Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
+#'
+#' # Print the model (this is called automatically when the object name is typed)
+#' linreg_model
+#'
+#' # Get the model coefficients
+#' linreg_model$coef()
+#'
+#' # Get the fitted values
+#' linreg_model$pred()
+#'
+#' # Print a detailed summary of the model
+#' linreg_model$summary()
+#'
 linreg <- setRefClass(
   "linreg",
   fields = list(
