@@ -32,9 +32,6 @@
 #'   \item{\code{summary()}}{Prints a detailed summary of the model, including coefficient statistics and residual standard error.}
 #' }
 #'
-#' @import methods
-#' @importFrom stats model.frame model.matrix model.response pt
-#' @export
 #' @examples
 #' # Create a new linear regression model using the iris dataset
 #' linreg_model <- linreg$new(Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
@@ -51,6 +48,10 @@
 #' # Print a detailed summary of the model
 #' linreg_model$summary()
 #'
+#' @import methods
+#' @importFrom stats model.frame model.matrix model.response pt
+#' @export linreg
+#' @exportClass linreg
 linreg <- setRefClass(
   "linreg",
   fields = list(
