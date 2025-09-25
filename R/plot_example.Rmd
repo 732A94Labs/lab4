@@ -1,0 +1,19 @@
+---
+title: "plot_test"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(patchwork)
+
+unstyled <- ggplot(iris, aes(Sepal.Length, Sepal.Width)) +
+  geom_point()
+
+themed <- ggplot(iris, aes(Sepal.Length, Sepal.Width)) +
+  geom_point() +
+  liu_theme()
+
+unstyled + themed
+
+```
