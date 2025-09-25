@@ -1,0 +1,186 @@
+---
+title: "Ordinary Least Squares with `linreg`"
+author: 
+  - "Felix Unterleiter"
+  - "Nils Fahrni"
+date: "09-25-2025"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Ordinary Least Squares with linreg}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6, fig.height = 4,
+  out.width = "70%"
+)
+```
+
+# Overview
+
+`linreg` is a lightweight reference class for fitting and analyzing **ordinary least squares (OLS)** linear regression models using basic linear algebra. It exposes a minimal API to:
+
+- fit a model from a `formula` and `data.frame`,
+- access coefficients, fitted values, and residuals,
+- print a compact model summary with t–tests and p–values.
+
+It is intentionally small and dependency-free, which makes it ideal for teaching, inspection, and experimentation.
+
+# Quick start
+
+```{r}
+# devtools::load_all(".")  # if working inside a package
+# library(yourpackagename)
+
+# Fit a model on iris
+linreg_model <- linreg$new(Petal.Length ~ Sepal.Width + Sepal.Length, data = iris)
+
+# Print the call and coefficients
+linreg_model
+```
+
+Extract common components:
+
+```{r}
+linreg_model$coef()
+linreg_model$pred()[1:5]
+linreg_model$resid()[1:5]
+```
+
+A more detailed summary:
+
+```{r}
+linreg_model$summary()
+```
+
+# What the class computes
+
+Given a model matrix \(X\) (including the intercept if present) and response \(y\), the class computes:
+
+- **Coefficients**  
+  \[
+  \hat\beta = (X^\top X)^{-1} X^\top y
+  \]
+
+- **Fitted values & residuals**  
+  \[
+  \hat y = X\hat\beta,\qquad r = y - \hat y
+  \]
+
+- **Degrees of freedom & residual standard error**  
+  \[
+  \text{df} = n - p,\qquad \hat\sigma = \sqrt{\tfrac{\sum r_i^2}{\text{df}}}
+  \]
+
+- **Coefficient covariance**  
+  \[
+  \widehat{\mathrm{Var}}(\hat\beta) = \hat\sigma^2 (X^\top X)^{-1}
+  \]
+
+- **t-statistics & p-values** (two-sided)  
+  \[
+  t_j = \frac{\hat\beta_j}{\sqrt{\widehat{\mathrm{Var}}(\hat\beta_j)}},\qquad
+  p_j = 2\,P\left(|T_{\text{df}}|\ge |t_j|\right)
+  \]
+
+These are displayed via `summary()` using base R's `printCoefmat()`.
+
+# Inspecting fit quality
+
+You can use base graphics with the returned vectors to visualize diagnostics.
+
+```{r}
+par(mfrow = c(1, 2))
+plot(linreg_model$pred(), linreg_model$resid(),
+     xlab = "Fitted values", ylab = "Residuals",
+     main = "Residuals vs Fitted")
+```
+
+# Handling factors, interactions, and contrasts
+
+Because `linreg` builds the model frame via `model.frame()` and the design matrix via `model.matrix()`, it inherits R's standard formula processing:
+
+```{r}
+# Factor handling: Species is a factor; default treatment contrasts apply
+m2 <- linreg$new(Petal.Length ~ Sepal.Length * Species, data = iris)
+m2$summary()
+```
+
+> Tip: You can change contrasts globally (e.g., `options(contrasts = c("contr.sum","contr.poly"))`) or supply them with `model.matrix()` semantics via the formula/design.
+
+# A small simulated example
+
+```{r}
+set.seed(123)
+n  <- 200
+x1 <- rnorm(n)
+x2 <- rnorm(n)
+y  <- 1 + 2*x1 - 0.5*x2 + rnorm(n, sd = 0.75)
+
+simdat <- data.frame(y, x1, x2)
+m3 <- linreg$new(y ~ x1 + x2, data = simdat)
+m3$summary()
+
+# Compare estimates to truth (1, 2, -0.5)
+m3$coef()
+```
+
+# API reference (recap)
+
+- `linreg$new(formula, data)`  
+  Fit a new model.
+
+- `print()`  
+  Echo the model call and coefficient estimates (also prints on object display).
+
+- `pred()`  
+  Return fitted values \(\hat y\).
+
+- `resid()`  
+  Return residuals \(r\).
+
+- `coef()`  
+  Return the named coefficient vector \(\hat\beta\).
+
+- `summary()`  
+  Print a coefficient table with standard errors, t-values, p-values, and the residual standard error.
+
+# Design notes and limitations
+
+- **Missing values:** Formula evaluation uses `model.frame()`, thus respects the global `na.action` (commonly `na.omit`). Rows dropped by `model.frame()` will be excluded from the fit.
+
+- **Numerics:** Coefficients use the closed-form \((X^\top X)^{-1}X^\top y\). For ill-conditioned \(X^\top X\), you may see warnings or large standard errors. (QR or SVD decompositions are more numerically stable and could be future enhancements.)
+
+- **No `predict(newdata=)` method:** `pred()` returns **in-sample** fitted values only. Out-of-sample prediction is not provided in this minimal implementation.
+
+- **Inference assumptions:** Standard errors and p-values assume homoskedastic, independent errors. Robust (sandwich) SEs are **not** included.
+
+- **Printing the data name:** The constructor attempts a best-effort “reverse lookup” of the `data` object's symbol to show a readable call; this may fall back to an empty label in some contexts (e.g., piped calls, temporary frames).
+
+# Troubleshooting
+
+- **“Residual degrees of freedom must be positive.”**  
+  You have \(n \le p\). Add more observations or reduce predictors.
+
+- **Singular fit / `solve()` issues:**  
+  Perfect multicollinearity (e.g., duplicated columns or exact linear combinations) makes \(X^\top X\) singular. Remove redundant predictors or change contrasts.
+
+- **Unexpected coefficient baselines with factors:**  
+  Check `contrasts()` and the reference level of factors (use `relevel()` if needed).
+
+# Reproducibility
+
+```{r}
+sessionInfo()
+```
+
+# Acknowledgements
+
+This vignette accompanies the `linreg` reference class that implements OLS with base R facilities only.
