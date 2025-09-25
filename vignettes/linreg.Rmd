@@ -21,6 +21,7 @@ knitr::opts_chunk$set(
   fig.width = 6, fig.height = 4,
   out.width = "70%"
 )
+library(lab4)
 ```
 
 # Overview
