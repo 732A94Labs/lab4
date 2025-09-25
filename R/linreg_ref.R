@@ -21,8 +21,23 @@ linreg <- setRefClass(
         stop("`data` must be provided as a data.frame.")
       }
 
-      call <- match.call()
-      data_label <- if ("data" %in% names(call)) deparse(call$data) else "data"
+      call <- sys.call(-1)
+      # The test "print() method works" strips context, so match.call() ("data_label <- deparse(call[[3]]) ") fails
+      # to find the original variable name (for the test: "iris") of the dataframe. This is a kind of sloppy workaround that performs
+      # a "reverse lookup" to manually search the parent environments to find the name
+      # of the variable that is identical to the provided data object.
+      data_label <- ""
+      for (i in 1:sys.nframe()) {
+        env <- parent.frame(n = i)
+        vars <- ls(env)
+        for (var in vars) {
+          if (identical(get(var, env), data)) {
+            data_label <- var
+            break
+          }
+        }
+        if (data_label != "") break
+      }
 
       mf <- model.frame(formula, data)
       y <- model.response(mf)
@@ -46,7 +61,7 @@ linreg <- setRefClass(
 
       # sigma_hat^2 = RSS / df (residual standard error)
       rss <- crossprod(residuals)
-      sigma_hat_squared <- rss / df
+      sigma_hat_squared <- as.numeric(rss / df)
 
       # var of resids = sigma_hat^2 * (X'X)^(-1) (covariance matrix of coefficients)'
       var_hat_beta <- sigma_hat_squared * solve(crossprod(X))
