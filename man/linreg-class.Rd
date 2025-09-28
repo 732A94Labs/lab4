@@ -50,6 +50,11 @@ Initializes a new linreg object.
 \strong{Returns:} A new \code{linreg} object.
 }
 \item{\code{print()}}{Prints the model call and the estimated coefficients.}
+\item{\code{plot()}}{
+Generates two diagnostic plots using \code{ggplot2}: a "Residuals vs Fitted" plot and a
+"Scale-Location" plot.
+\strong{Returns:} A \code{patchwork} object containing the combined plots, which is also printed to the screen.
+}
 \item{\code{pred()}}{Returns the vector of fitted values.}
 \item{\code{resid()}}{Returns the vector of residuals.}
 \item{\code{coef()}}{Returns the named vector of regression coefficients.}
@@ -69,6 +74,9 @@ linreg_model$coef()
 
 # Get the fitted values
 linreg_model$pred()
+
+# Generate and view diagnostic plots
+linreg_model$plot()
 
 # Print a detailed summary of the model
 linreg_model$summary()
