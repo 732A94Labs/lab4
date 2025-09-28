@@ -220,7 +220,7 @@ linreg <- setRefClass(
       if (!requireNamespace("patchwork", quietly = TRUE)) {
         stop("Package 'patchwork' is required. Add it to Imports and install it.", call. = FALSE)
       }
-      out <- patchwork::wrap_plots(p1, p2, ncol = 1)
+      out <- p1 / p2
 
       print(out)
       invisible(out)
