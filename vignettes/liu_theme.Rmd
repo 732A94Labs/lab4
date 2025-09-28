@@ -1,0 +1,111 @@
+---
+title: "Plotting with the Linköping University ggplot2 theme"
+author: "Nils Fahrni"
+date: "09-25-2025"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Plotting with the Linköping University ggplot2 theme}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6, fig.height = 4,
+  out.width = "70%"
+)
+library(lab4)
+library(ggplot2)
+```
+
+# Overview
+
+This vignette introduces `liu_theme()`, a minimalistic **ggplot2** theme inspired by Linköping University's visual style. It builds on `theme_minimal()` and adjusts background, grid, and titles for clean, legible charts out of the box.
+
+```{r}
+liu_theme <- function() {
+  ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      plot.background = ggplot2::element_rect(fill = "#d1f4f6"),
+      plot.title = ggplot2::element_text(face = "bold"),
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.grid.major = ggplot2::element_line(colour = "#54d8e0")
+    )
+}
+```
+
+> If you are using this inside a package, you don't need to redefine it here—load your package instead, e.g. `library(yourpackagename)`.
+
+# Quick demo
+
+```{r}
+library(ggplot2)
+
+p <- ggplot(mpg, aes(displ, hwy, colour = class)) +
+  geom_point() +
+  labs(
+    title = "Fuel economy by engine size",
+    subtitle = "EPA data (ggplot2::mpg)",
+    x = "Engine displacement (litres)",
+    y = "Highway MPG",
+    colour = "Class"
+  )
+
+# Default ggplot2 look
+p
+```
+
+Apply `liu_theme()`:
+
+```{r}
+p + liu_theme()
+```
+
+# Set as default (optional)
+
+To use the theme for all subsequent plots in your session:
+
+```{r}
+op_theme <- theme_set(liu_theme())
+# Your plots now use liu_theme() by default
+ggplot(mtcars, aes(wt, mpg)) + geom_point() + labs(title = "Default now: liu_theme()")
+```
+
+# Customization tips
+
+Because `liu_theme()` returns a standard ggplot2 theme, you can layer modifications with `+ theme(...)`:
+
+```{r}
+p + liu_theme() +
+  theme(
+    plot.title.position = "plot",
+    plot.title = element_text(size = 14),
+    panel.grid.major = element_line(linetype = 3)
+  )
+```
+
+You can also combine it with scale helpers without conflict:
+
+```{r}
+p + liu_theme() +
+  scale_colour_brewer(palette = "Dark2")
+```
+
+# Color choices and accessibility
+
+- **Plot background** `#d1f4f6`: light, low-ink background that frames the panel while preserving contrast.
+- **Major grid** `#54d8e0`: unobtrusive but visible guides; minor grid lines are removed to reduce clutter.
+- **Typography**: bold plot titles improve hierarchy and scannability.
+
+When publishing, always verify contrast for your chosen geoms/colours against the background (e.g., dark text/lines on the light background typically meet WCAG AA).
+
+# Reproducibility
+
+```{r}
+sessionInfo()
+```
