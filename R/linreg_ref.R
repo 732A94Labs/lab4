@@ -205,12 +205,12 @@ linreg <- setRefClass(
         ) +
         liu_theme()
 
-      # 2nd panel: Scale–Location
+      # 2nd panel: Scale Location
       p2 <- ggplot2::ggplot(df, ggplot2::aes(fitted, sl_y)) +
         ggplot2::geom_point() +
         ggplot2::geom_line(data = sm2df, ggplot2::aes(x, y), inherit.aes = FALSE, colour = "red") +
         ggplot2::labs(
-          title = "Scale–Location",
+          title = "Scale\u2013Location",
           subtitle = paste("Model:", deparse(.self$formula)),
           x = "Fitted values",
           y = expression(sqrt("|Standardized residuals|"))
