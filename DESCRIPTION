@@ -1,10 +1,11 @@
 Package: lab4
 Title: Reference Class Linear Regression and LiU ggplot2 Theme
 Version: 0.1.0
-Authors@R: c(
-    person("Felix", "Unterleiter", email = "felun463@student.liu.se", role = c("aut", "cre")),
-    person("Nils",  "Fahrni",      email = "nilfa685@student.liu.se", role = "aut")
-)
+Authors@R:
+    c(
+      person("Felix", "Unterleiter", email = "felun463@student.liu.se", role = c("aut", "cre")),
+      person("Nils",  "Fahrni",      email = "nilfa685@student.liu.se", role = "aut")
+    )
 Description: Provides a reference-class implementation of ordinary least squares
     regression with print, summary, and diagnostic plotting methods, plus a
     minimal ggplot2 theme used in LiU coursework.
