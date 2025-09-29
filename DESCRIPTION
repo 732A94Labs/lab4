@@ -1,22 +1,26 @@
 Package: lab4
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
-Authors@R: 
-    person("Felix", "Unterleiter", , "felun463@student.liu.se", role = c("aut", "cre"))
-    person("Nils", "Fahrni", , "nilfa685@student.liu.se", role = c("aut", "cre"))
-Description: This package contains a Linear Regression RC class and a small ggplot2 theme for LiU.
+Title: Reference Class Linear Regression and LiU ggplot2 Theme
+Version: 0.1.0
+Authors@R:
+    c(
+      person("Felix", "Unterleiter", email = "felun463@student.liu.se", role = c("aut", "cre")),
+      person("Nils",  "Fahrni",      email = "nilfa685@student.liu.se", role = "aut")
+    )
+Description: Provides a reference-class implementation of ordinary least squares
+    regression with print, summary, and diagnostic plotting methods, plus a
+    minimal ggplot2 theme used in LiU coursework.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
-Suggests: 
-    knitr,
-    rmarkdown,
-    ggplot2,
-    testthat (>= 3.0.0)
-Config/testthat/edition: 3
-VignetteBuilder: knitr
 Depends:
-    methods
+    R (>= 4.2.0)
 Imports:
-    methods
+    methods,
+    ggplot2,
+    patchwork
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

@@ -26,6 +26,11 @@
 #'     \strong{Returns:} A new \code{linreg} object.
 #'   }
 #'   \item{\code{print()}}{Prints the model call and the estimated coefficients.}
+#'   \item{\code{plot()}}{
+#'     Generates two diagnostic plots using \code{ggplot2}: a "Residuals vs Fitted" plot and a
+#'     "Scale-Location" plot.
+#'     \strong{Returns:} A \code{patchwork} object containing the combined plots, which is also printed to the screen.
+#'   }
 #'   \item{\code{pred()}}{Returns the vector of fitted values.}
 #'   \item{\code{resid()}}{Returns the vector of residuals.}
 #'   \item{\code{coef()}}{Returns the named vector of regression coefficients.}
@@ -45,10 +50,15 @@
 #' # Get the fitted values
 #' linreg_model$pred()
 #'
+#' # Generate and view diagnostic plots
+#' linreg_model$plot()
+#'
 #' # Print a detailed summary of the model
 #' linreg_model$summary()
 #'
 #' @import methods
+#' @import ggplot2
+#' @import patchwork
 #' @importFrom stats model.frame model.matrix model.response pt
 #' @export linreg
 #' @exportClass linreg
@@ -76,10 +86,6 @@ linreg <- setRefClass(
       }
 
       call <- sys.call(-1)
-      # The test "print() method works" strips context, so match.call() ("data_label <- deparse(call[[3]]) ") fails
-      # to find the original variable name (for the test: "iris") of the dataframe. This is a kind of sloppy workaround that performs
-      # a "reverse lookup" to manually search the parent environments to find the name
-      # of the variable that is identical to the provided data object.
       data_label <- ""
       arg <- tryCatch(substitute(data), error = function(e) NULL)
       if (!is.null(arg) && is.symbol(arg)) {
@@ -163,6 +169,61 @@ linreg <- setRefClass(
 
     coef = function() {
       .self$coefficients
+    },
+
+    plot = function(...) {
+      mf <- stats::model.frame(.self$formula, .self$data)
+      X  <- stats::model.matrix(attr(mf, "terms"), mf)
+
+      XtX_inv <- chol2inv(chol(crossprod(X)))
+      h <- rowSums((X %*% XtX_inv) * X)
+
+      rs   <- .self$residuals / (.self$sigma * sqrt(pmax(1e-12, 1 - h)))
+      sl_y <- sqrt(abs(rs))
+
+      df <- data.frame(
+        fitted = .self$fitted_values,
+        resid  = .self$residuals,
+        sl_y   = sl_y
+      )
+
+      sm1 <- stats::lowess(df$fitted, df$resid,  f = 2/3)
+      sm2 <- stats::lowess(df$fitted, df$sl_y,  f = 2/3)
+      sm1df <- data.frame(x = sm1$x, y = sm1$y)
+      sm2df <- data.frame(x = sm2$x, y = sm2$y)
+
+      # 1st panel: Residuals vs Fitted
+      p1 <- ggplot2::ggplot(df, ggplot2::aes(fitted, resid)) +
+        ggplot2::geom_point() +
+        ggplot2::geom_hline(yintercept = 0, linetype = "dashed") +
+        ggplot2::geom_line(data = sm1df, ggplot2::aes(x, y), inherit.aes = FALSE, colour = "red") +
+        ggplot2::labs(
+          title = "Residuals vs Fitted",
+          subtitle = paste("Model:", deparse(.self$formula)),
+          x = "Fitted values",
+          y = "Residuals"
+        ) +
+        liu_theme()
+
+      # 2nd panel: Scale Location
+      p2 <- ggplot2::ggplot(df, ggplot2::aes(fitted, sl_y)) +
+        ggplot2::geom_point() +
+        ggplot2::geom_line(data = sm2df, ggplot2::aes(x, y), inherit.aes = FALSE, colour = "red") +
+        ggplot2::labs(
+          title = "Scale\u2013Location",
+          subtitle = paste("Model:", deparse(.self$formula)),
+          x = "Fitted values",
+          y = expression(sqrt("|Standardized residuals|"))
+        ) +
+        liu_theme()
+
+      if (!requireNamespace("patchwork", quietly = TRUE)) {
+        stop("Package 'patchwork' is required. Add it to Imports and install it.", call. = FALSE)
+      }
+      out <- p1 / p2
+
+      print(out)
+      invisible(out)
     },
 
     summary = function(...) {
