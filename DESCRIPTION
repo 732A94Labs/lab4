@@ -18,9 +18,12 @@ Depends:
 Imports:
     methods,
     ggplot2,
-    patchwork
+    patchwork,
+    dplyr
 Suggests:
     testthat (>= 3.0.0),
     knitr,
-    rmarkdown
+    rmarkdown,
+    MASS,
+    nycflights13
 VignetteBuilder: knitr
