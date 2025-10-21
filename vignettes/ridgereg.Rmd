@@ -1,0 +1,240 @@
+---
+title: "Predictive Modeling with ridgereg: BostonHousing"
+author: 
+  - "Felix Unterleiter"
+  - "Nils Fahrni"
+date: "10-21-2025"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteIndexEntry{Predictive Modeling with ridgereg: BostonHousing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.5
+)
+set.seed(1337)  # reproducibility
+```
+
+# 1. Overview
+
+This vignette demonstrates a **simple prediction problem using our custom `ridgereg()`** function, following the Bonus Lab Problem **2.1** requirements:
+
+- Use **caret** and our `ridgereg()` to build a predictive model on **BostonHousing** (from **mlbench**).  
+- Split data into **training** and **test** sets (Step 1).  
+- Fit:
+  1) **Linear regression**,  
+  2) **Linear regression with forward selection of covariates** (Step 2),  
+  3) **Ridge regression** using our `ridgereg()` (Steps 4–5).  
+- Evaluate models and **compare performance** (Steps 3 & 6).
+
+We strictly follow the lab's instructions and document each step so it's easy to verify compliance.
+
+```{r packages}
+# Core modeling packages
+library(caret)       # splitting, resampling, training
+library(mlbench)     # BostonHousing data
+library(dplyr)       # light wrangling/printing
+library(ggplot2)     # simple plots
+library(lab4)        # exposes ridgereg()
+```
+
+# 2. Data: BostonHousing (Step 1)
+
+We load the data and create **training/test** sets using `caret::createDataPartition` as required.
+
+```{r data-split}
+data("BostonHousing", package = "mlbench")
+
+# Response variable:
+response <- "medv"  # Median value of owner-occupied homes in $1000's
+
+# Partition: 80% train, 20% test (the lab text requires train/test; validation appears in 2.1* task)
+set.seed(20251021)
+train_idx <- createDataPartition(BostonHousing[[response]], p = 0.80, list = FALSE)
+
+train_dat <- BostonHousing[train_idx, ]
+test_dat  <- BostonHousing[-train_idx, ]
+
+dim(train_dat); dim(test_dat)
+```
+
+# 3. Linear Regression Models (Step 2)
+
+We fit:
+
+- **(A)** A standard linear regression (all covariates).  
+- **(B)** A **forward selection** linear model. The lab hints emphasize verifying that, given \(n\) covariates, the forward selection can choose among **0, 1, …, n** variables (i.e., from intercept-only to full model). We'll explicitly **check** this and document what caret provides (and add an intercept-only baseline if needed).
+
+## 3.1 Plain Linear Regression (all covariates)
+
+```{r lm-all}
+lm_formula <- as.formula(paste(response, "~ ."))
+
+ctrl_none <- trainControl(method = "none")  # no resampling; fit on training set
+
+set.seed(1)
+lm_all_fit <- train(
+  lm_formula, data = train_dat,
+  method = "lm",
+  trControl = ctrl_none
+)
+
+lm_all_fit
+```
+
+## 3.2 Forward Selection (caret + leaps) and the "0..n" Check
+
+We use `method = "leapForward"` (package **leaps** via **caret**) and tune over `nvmax`, the number of predictors to include. We **check** whether the trained object covers **0..n** (where \(n\) is the number of candidate predictors). If `nvmax = 0` (intercept-only) is **not** produced by `leapForward`, we add an **intercept-only baseline** separately (this addresses the lab's hint to verify and handle the 0-case).
+
+```{r forward-selection}
+# number of candidate predictors (excluding response):
+p <- ncol(train_dat) - 1L
+
+# tune grid: we try 1 to p via leaps::regsubsets (leapForward in caret)
+# (Most implementations won't yield an intercept-only (0) model.)
+fwd_grid <- data.frame(nvmax = 1:p)
+
+ctrl_cv10 <- trainControl(method = "cv", number = 10)
+
+set.seed(2)
+lm_fwd_fit <- train(
+  lm_formula, data = train_dat,
+  method = "leapForward",
+  tuneGrid = fwd_grid,
+  trControl = ctrl_cv10
+)
+
+lm_fwd_fit
+```
+
+### Check the 0..n coverage (lab hint ii)
+
+```{r forward-check}
+covered <- sort(unique(lm_fwd_fit$results$nvmax))
+covered
+
+all_sizes_present <- identical(covered, 0:p)
+all_sizes_present
+```
+
+
+If `all_sizes_present` is `FALSE`, we document that **`leapForward` did not include the intercept-only (0) model**, and we **include it as a separate baseline fit** for completeness (as per the lab's hint to check and address the condition).
+
+```{r intercept-only}
+lm_intercept_fit <- stats::lm(as.formula(paste(response, "~ 1")), data = train_dat)
+```
+
+# 4. Evaluate Linear Models on the **Training** Set (Step 3)
+
+The lab asks to evaluate “this model on the training dataset” after Step 2. We report **RMSE** and $R^2$ on the **training** data for the models above.
+
+```{r training-eval-lm}
+# Helper to compute training metrics via caret::postResample
+train_metrics <- function(fit, data, response) {
+  preds <- predict(fit, newdata = data)
+  obs   <- data[[response]]
+  as.data.frame(t(postResample(pred = preds, obs = obs)))
+}
+
+lm_intercept_train <- train_metrics(lm_intercept_fit, train_dat, response)
+lm_all_train       <- train_metrics(lm_all_fit,       train_dat, response)
+lm_fwd_best_train  <- train_metrics(lm_fwd_fit,       train_dat, response)
+
+train_res <- bind_rows(
+  cbind(Model = "Intercept-only (baseline)", lm_intercept_train),
+  cbind(Model = "Linear regression (all covariates)", lm_all_train),
+  cbind(Model = paste0("Forward selection (nvmax=", lm_fwd_fit$bestTune$nvmax, ")"),
+        lm_fwd_best_train)
+)
+
+knitr::kable(train_res, digits = 4, caption = "Training-set performance (RMSE, R2, MAE)")
+```
+
+# 5. Ridge Regression via **ridgereg** (Steps 4–5)
+
+We now integrate your **custom `ridgereg()`** into **caret** and **tune \(\lambda\)** using **10-fold CV** on the **training** set, as required.  
+(How to add custom models in caret is mentioned in the lab.
+
+## 5.1 Define a caret model wrapper for `ridgereg()`
+
+```{r caret-model-wrapper}
+ridgereg_caret <- list(
+  type = "Regression",
+  library = c("lab4"),   # load your package
+  parameters = data.frame(
+    parameter = "lambda", class = "numeric", label = "Ridge Penalty"
+  ),
+  grid = function(x, y, len = NULL, search = "grid") {
+    # Reasonable default grid on log-scale if len provided
+    if (!is.null(len) && len > 0) {
+      data.frame(lambda = exp(seq(log(1e-4), log(100), length.out = len)))
+    } else {
+      data.frame(lambda = exp(seq(log(1e-4), log(100), length.out = 25)))
+    }
+  },
+  fit = function(x, y, wts, param, lev, last, classProbs, ...) {
+    dat <- as.data.frame(x)
+    dat$.y <- y
+    form <- .y ~ .
+    # call your function
+    lab4::ridgereg(formula = form, data = dat, lambda = param$lambda)
+  },
+  predict = function(modelFit, newdata, submodels = NULL) {
+    # your predict.ridgereg already handles newdata = NULL vs data frame
+    predict(modelFit, newdata = newdata)
+  },
+  prob = NULL
+)
+```
+
+## 5.2 Tune \(\lambda\) with 10-fold CV on the training set (Step 5)
+
+```{r ridge-train}
+set.seed(3)
+ridge_grid <- data.frame(lambda = exp(seq(log(1e-4), log(100), length.out = 25)))
+
+ridge_fit <- train(
+  lm_formula, data = train_dat,
+  method = ridgereg_caret,
+  tuneGrid = ridge_grid,
+  trControl = ctrl_cv10,
+  metric = "RMSE"
+)
+
+ridge_fit
+plot(ridge_fit) + ggplot2::ggtitle("Ridge: 10-fold CV RMSE vs lambda")
+```
+
+# 6. Test-set Evaluation & Comparison (Step 6)
+
+Finally, we evaluate **all three** models on the **test set** and provide **concluding comments**.
+
+```{r test-eval}
+eval_on_test <- function(fit, data, response) {
+  preds <- predict(fit, newdata = data)
+  obs   <- data[[response]]
+  as.data.frame(t(postResample(preds, obs)))
+}
+
+res_test <- bind_rows(
+  cbind(Model = "Intercept-only (baseline)", eval_on_test(lm_intercept_fit, test_dat, response)),
+  cbind(Model = "Linear regression (all covariates)", eval_on_test(lm_all_fit, test_dat, response)),
+  cbind(Model = paste0("Forward selection (nvmax=", lm_fwd_fit$bestTune$nvmax, ")"),
+        eval_on_test(lm_fwd_fit, test_dat, response)),
+  cbind(Model = paste0("Ridge (lambda=", signif(ridge_fit$bestTune$lambda, 4), ")"),
+        eval_on_test(ridge_fit, test_dat, response))
+)
+
+knitr::kable(res_test, digits = 4, caption = "Test-set performance (RMSE, R2, MAE)")
+```
+
+
+```{r session-info}
+sessionInfo()
+```
