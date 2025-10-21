@@ -1,4 +1,4 @@
-# lab4
+# lab4 + Bonus lab
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/732A94Labs/lab4/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/732A94Labs/lab4/actions/workflows/R-CMD-check.yaml)
