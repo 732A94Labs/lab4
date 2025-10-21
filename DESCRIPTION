@@ -21,7 +21,8 @@ Imports:
     patchwork,
     dplyr,
     nycflights13,
-    rlang
+    rlang,
+    maps
 Suggests:
     mlbench,
     caret,
@@ -33,6 +34,5 @@ Suggests:
     forcats,
     knitr,
     rmarkdown,
-    patchwork,
-    maps
+    patchwork
 VignetteBuilder: knitr
