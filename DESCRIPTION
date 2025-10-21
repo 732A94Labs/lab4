@@ -21,12 +21,16 @@ Imports:
     patchwork,
     dplyr
 Suggests:
-    testthat (>= 3.0.0),
-    knitr,
-    rmarkdown,
-    MASS,
     nycflights13,
     mlbench,
     caret,
-    maps
+    leaps,
+    dplyr,
+    tidyr,
+    lubridate,
+    ggplot2,
+    forcats,
+    knitr,
+    rmarkdown,
+    patchwork
 VignetteBuilder: knitr
