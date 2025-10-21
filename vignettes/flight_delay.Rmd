@@ -207,7 +207,7 @@ form <- arr_delay ~ .
 rmse <- function(pred, obs) sqrt(mean((pred - obs)^2))
 
 # Log-spaced lambda search grid
-lambda_values <- exp(seq(log(1e-4), log(1000), length.out = 25))
+lambda_values <- exp(seq(log(1e-2), log(10), length.out = 10))
 message("Searching with lambdas: ", paste(signif(lambda_values, 4), collapse = ", "))
 
 # Fit on TRAIN for each lambda; evaluate on VALIDATION
