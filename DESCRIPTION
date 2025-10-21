@@ -18,6 +18,7 @@ Depends:
 Imports:
     methods,
     ggplot2,
+    testthat,
     patchwork,
     dplyr,
     nycflights13,
