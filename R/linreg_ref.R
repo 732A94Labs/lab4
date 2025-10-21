@@ -93,54 +93,51 @@ linreg <- setRefClass(
       }
 
       mf <- model.frame(formula, data)
-      y <- model.response(mf)
-      X <- model.matrix(attr(mf, "terms"), mf)
+      y  <- model.response(mf)
+      X  <- model.matrix(attr(mf, "terms"), mf)
 
-      # beta_hat = (X'X)^(-1) X'y (regression coefficients)
-      coefficients <- as.numeric(solve(crossprod(X)) %*% crossprod(X, y))
-      names(coefficients) <- colnames(X)
+      # beta_hat = (X'X)^(-1) X'y
+      coef_hat <- as.numeric(solve(crossprod(X)) %*% crossprod(X, y))
+      names(coef_hat) <- colnames(X)
 
-      # y_hat = X * beta_hat (fitted values)
-      fitted <- as.numeric(X %*% coefficients)
+      # fitted and residuals
+      fitted_vals <- as.numeric(X %*% coef_hat)
+      resid_vec   <- as.numeric(y - fitted_vals)
 
-      # residuals = y - y_hat
-      residuals <- as.numeric(y - fitted)
+      # df = n - p
+      df_resid_val <- length(y) - ncol(X)
+      if (df_resid_val <= 0) stop("Residual degrees of freedom must be positive.")
 
-      # df = n - p (degrees of freedom)
-      df <- length(y) - ncol(X)
-      if (df <= 0) {
-        stop("Residual degrees of freedom must be positive.")
-      }
+      # sigma^2 = RSS / df
+      rss          <- crossprod(resid_vec)
+      sigma2_hat   <- as.numeric(rss / df_resid_val)
 
-      # sigma_hat^2 = RSS / df (residual standard error)
-      rss <- crossprod(residuals)
-      sigma_hat_squared <- as.numeric(rss / df)
+      # Var(beta_hat) = sigma^2 (X'X)^(-1)
+      V_beta <- sigma2_hat * solve(crossprod(X))
 
-      # var of resids = sigma_hat^2 * (X'X)^(-1) (covariance matrix of coefficients)'
-      var_hat_beta <- sigma_hat_squared * solve(crossprod(X))
-
-      # t_beta = beta_hat / se(beta_hat) (t-values and p-values)
-      t_values <- coefficients / sqrt(diag(var_hat_beta))
-      p_values <- 2 * pt(-abs(t_values), df)
+      # t-stats and p-values
+      t_values <- coef_hat / sqrt(diag(V_beta))
+      p_values <- 2 * pt(-abs(t_values), df_resid_val)
 
       coef_table <- data.frame(
-        Estimate = coefficients,
-        `Std. Error` = sqrt(diag(var_hat_beta)),
-        `t value` = t_values,
-        `Pr(>|t|)` = p_values,
+        Estimate   = coef_hat,
+        `Std. Error` = sqrt(diag(V_beta)),
+        `t value`    = t_values,
+        `Pr(>|t|)`   = p_values,
         check.names = FALSE
       )
 
-      .self$formula <- formula
-      .self$data <- data
-      .self$data_name <- data_label
-      .self$coefficients <- coefficients
-      .self$fitted_values <- fitted
-      .self$residuals <- residuals
-      .self$df_residual <- df
-      .self$sigma <- sqrt(sigma_hat_squared)
-      .self$var_hat_beta <- var_hat_beta
-      .self$summary_table <- coef_table
+      # ---- assign to fields (no name shadowing now) ----
+      .self$formula        <- formula
+      .self$data           <- data
+      .self$data_name      <- data_label
+      .self$coefficients   <- coef_hat
+      .self$fitted_values  <- fitted_vals
+      .self$residuals      <- resid_vec
+      .self$df_residual    <- df_resid_val
+      .self$sigma          <- sqrt(sigma2_hat)
+      .self$var_hat_beta   <- V_beta
+      .self$summary_table  <- coef_table
 
       callSuper(...)
     },

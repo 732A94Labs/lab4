@@ -25,5 +25,6 @@ Suggests:
     knitr,
     rmarkdown,
     MASS,
-    nycflights13
+    nycflights13,
+    maps
 VignetteBuilder: knitr
