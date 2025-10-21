@@ -19,7 +19,8 @@ Imports:
     methods,
     ggplot2,
     patchwork,
-    dplyr
+    dplyr,
+    rlang
 Suggests:
     nycflights13,
     mlbench,
