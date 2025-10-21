@@ -1,8 +1,8 @@
 ---
 title: "Predictive Modeling with ridgereg: BostonHousing"
 author: 
-  - "Felix Unterleiter"
   - "Nils Fahrni"
+  - "Felix Unterleiter"
 date: "10-21-2025"
 output:
   rmarkdown::html_vignette:
@@ -234,7 +234,7 @@ res_test <- bind_rows(
 knitr::kable(res_test, digits = 4, caption = "Test-set performance (RMSE, R2, MAE)")
 ```
 
-
+# 7. Session info
 ```{r session-info}
 sessionInfo()
 ```
