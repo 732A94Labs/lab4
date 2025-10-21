@@ -20,9 +20,9 @@ Imports:
     ggplot2,
     patchwork,
     dplyr,
+    nycflights13,
     rlang
 Suggests:
-    nycflights13,
     mlbench,
     caret,
     leaps,
