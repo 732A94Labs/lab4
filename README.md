@@ -4,7 +4,7 @@
 [![R-CMD-check](https://github.com/732A94Labs/lab4/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/732A94Labs/lab4/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-`lab4` is the Advanced R Programming Lab 4 package. It delivers a compact linear regression toolkit: ordinary least squares core computations, optional QR-based solver, model methods for summaries/predictions/plots, and a Linköping University `ggplot2` theme.
+`lab4` is the Advanced R Programming Lab 4 package. It delivers a compact linear regression toolkit: ordinary least squares core computations, optional QR-based solver, model methods for summaries/predictions/plots, and a Linköping University `ggplot2` theme. Additionally, the Bonus Lab tasks were added to this repository.
 
 ## Install
 
