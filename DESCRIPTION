@@ -18,9 +18,20 @@ Depends:
 Imports:
     methods,
     ggplot2,
-    patchwork
+    testthat,
+    patchwork,
+    dplyr,
+    nycflights13,
+    rlang,
+    maps
 Suggests:
-    testthat (>= 3.0.0),
+    mlbench,
+    caret,
+    leaps,
+    tidyr,
+    lubridate,
+    forcats,
     knitr,
-    rmarkdown
+    rmarkdown,
+    MASS
 VignetteBuilder: knitr
