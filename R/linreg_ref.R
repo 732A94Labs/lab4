@@ -219,7 +219,7 @@ linreg <- setRefClass(
       }
       out <- p1 / p2
 
-      print(out)
+      base::print(out)
       invisible(out)
     },
 

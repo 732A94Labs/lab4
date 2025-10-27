@@ -28,13 +28,10 @@ Suggests:
     mlbench,
     caret,
     leaps,
-    dplyr,
     tidyr,
     lubridate,
-    ggplot2,
     forcats,
     knitr,
     rmarkdown,
-    patchwork,
     MASS
 VignetteBuilder: knitr

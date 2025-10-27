@@ -116,30 +116,34 @@ dim(dat)
 
 # 3. Split into **test (5%)**, **train (80%)**, **validation (15%)** (Step 3)
 
-We select indices to match the exact proportions required by the lab.
+We rely on `caret::createDataPartition()` to obtain stratified splits that match the required proportions.
 
 ```{r split-sets}
 set.seed(1337)
 
 N <- nrow(dat)
-n_test  <- floor(0.05 * N)
-n_train <- floor(0.80 * N)
-# remainder goes to validation to ensure 5/80/15 (sums to N)
-n_valid <- N - n_test - n_train
 
-all_idx  <- seq_len(N)
-test_idx <- sample(all_idx, n_test)
-remain   <- setdiff(all_idx, test_idx)
-train_idx <- sample(remain, n_train)
-valid_idx <- setdiff(remain, train_idx)
-
-stopifnot(length(test_idx) + length(train_idx) + length(valid_idx) == N)
-
+# caret stratified split: 80% training
+train_idx <- caret::createDataPartition(dat$arr_delay, p = 0.80, list = FALSE)[, 1]
 train_dat <- dat[train_idx, , drop = FALSE]
-valid_dat <- dat[valid_idx, , drop = FALSE]
-test_dat  <- dat[test_idx,  , drop = FALSE]
 
-sapply(list(train=nrow(train_dat), valid=nrow(valid_dat), test=nrow(test_dat)), identity)
+# remaining 20% -> split into validation (15%) and test (5%) via caret
+remain_dat <- dat[-train_idx, , drop = FALSE]
+valid_idx_rel <- caret::createDataPartition(remain_dat$arr_delay, p = 0.75, list = FALSE)[, 1]
+valid_dat <- remain_dat[valid_idx_rel, , drop = FALSE]
+test_dat  <- remain_dat[-valid_idx_rel, , drop = FALSE]
+
+split_summary <- c(
+  train = nrow(train_dat),
+  valid = nrow(valid_dat),
+  test  = nrow(test_dat)
+)
+
+# sanity check: all observations assigned exactly once
+stopifnot(sum(split_summary) == N)
+
+# proportions should be close to 0.80 / 0.15 / 0.05 (differences only from rounding)
+round(split_summary / N, 3)
 ```
 
 ```{r impute-after-split, message=FALSE}
