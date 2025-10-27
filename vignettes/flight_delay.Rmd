@@ -44,7 +44,31 @@ library(forcats)
 library(lab4)  # exposes ridgereg()
 ```
 
-# 2. Data preparation (Steps 1–2)
+# 2. Data exploration & preparation (Steps 1–2)
+
+First we take a look at the nycflights13 dataset via our `visualize_airport_delays()` function.
+
+```{r}
+visualize_airport_delays()
+```
+
+To anchor the magnitude of delays, we also peek at simple distribution summaries by origin airport. This helps confirm that our target has a wide spread and that each airport has enough observations for modeling.
+
+```{r delay-summary, message=FALSE}
+nycflights13::flights %>%
+  filter(!is.na(arr_delay)) %>%
+  group_by(origin) %>%
+  summarise(
+    flights = n(),
+    median_delay = median(arr_delay),
+    iqr_delay = IQR(arr_delay)
+  ) %>%
+  arrange(desc(median_delay))
+```
+
+- All three airports show slightly negative medians (JFK −6min, LGA −5min, EWR −4min), so half of flights land within a few minutes of schedule or a bit early; the median differences are negligible.
+- The interquartile ranges cluster around 29-32minutes, meaning the middle 50% of arrivals at each airport span roughly a half‑hour window—delays are noisy but comparably so across origins.
+- EWR has the largest median (least early) and the widest IQR (32min), hinting at marginally more variability there, whereas LGA is a touch tighter (29min).
 
 We use **arrival delay** as the target (`arr_delay`, minutes). We **join hourly weather** to each flight (by `year`, `month`, `day`, `hour`, `origin`) and engineer a few **domain-motivated interactions**:
 

@@ -37,7 +37,7 @@ visualize_airport_delays <- function() {
     arrange(desc(mean_delay))
 
   ggplot2::ggplot(delay_summary, aes(x = .data$lon, y = .data$lat)) +
-    ggplot2::borders("state", fill = NA, colour = "grey80") +
+    ggplot2::annotation_borders("state", fill = NA, colour = "grey80") +
     ggplot2::geom_point(
       aes(colour = .data$mean_delay, size = .data$flight_count),
       alpha = 0.8
