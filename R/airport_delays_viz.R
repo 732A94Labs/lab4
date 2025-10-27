@@ -2,8 +2,8 @@
 #'
 #' Aggregates the `nycflights13::flights` data set using `dplyr` and returns a
 #' `ggplot2` object showing the mean arrival delay by airport longitude and
-#' latitude. Point size encodes the number of flights contributing to the
-#' average. Adds a U.S. country outline in the background.
+#' latitude on a U.S. country outline in the background. Point size encodes the number of flights contributing to the
+#' average.
 #'
 #' @return A `ggplot2` object.
 #' @export
@@ -61,4 +61,3 @@ visualize_airport_delays <- function() {
     ggplot2::theme_minimal()
 }
 
-visualize_airport_delays()

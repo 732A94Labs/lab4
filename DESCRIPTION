@@ -35,5 +35,6 @@ Suggests:
     forcats,
     knitr,
     rmarkdown,
-    patchwork
+    patchwork,
+    MASS
 VignetteBuilder: knitr
